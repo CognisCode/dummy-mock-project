@@ -20,14 +20,15 @@ const CLOSECHASER: usize = 1;
 const HIGHCHASER: usize = 1; 
 const HIGHREWARDS: usize = 50; 
 const LOWREWARDS: usize = 50; 
- 
+const MAXITERATIONS: usize = 3; 
+
 pub const HIGHVALUE: f32 = 200.0;
 pub const LOWVALUE: f32 = 50.0;
 
 struct Simulation {
     all_players_vector: Vec<Player>, 
     chaser_scores: Scores,
-    amount: usize,
+    scores_left: usize,
     iteration: usize,
     max_iterations: usize,
 }
@@ -41,26 +42,24 @@ pub struct Scores {
 
 fn simulation(app: &App) -> Simulation {
 
-        // Initialize the window
-        app.new_window()
+    // Initialize the window
+    app.new_window()
         .size(2400, 1200)
         .view(view)
         .build()
         .unwrap();
 
-    let mut all_players_vector = Vec::new();
-    
+    let mut all_players_vector: Vec<Player> = Vec::new();
+    let mut iteration = 0;
+    let mut max_iterations = MAXITERATIONS;
+    let mut scores_left = HIGHREWARDS + LOWREWARDS;
+
     let mut chaser_scores = Scores {
         close_score: 0.0,
         high_score: 0.0,
         smart_score: 0.0,
     };
 
-    let mut iteration = 1;
-    let mut max_iterations = 3;
-
-    app.set_fullscreen_on_shortcut(true);
-    let mut amount = HIGHREWARDS + LOWREWARDS;
     // Create HighReward and LowReward
     create_rewards(1, HIGHREWARDS, PlayerType::HighReward, HIGHVALUE, &mut all_players_vector);
     create_rewards(100, LOWREWARDS, PlayerType::LowReward, LOWVALUE, &mut all_players_vector);
@@ -70,14 +69,17 @@ fn simulation(app: &App) -> Simulation {
     create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector);
     create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector);
 
-    Simulation {all_players_vector, chaser_scores, amount, iteration, max_iterations}
+    Simulation {all_players_vector, chaser_scores, scores_left, iteration, max_iterations}
 }
 
 fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
-    if simulation.amount == 0 {
+    
+    if simulation.iteration == simulation.max_iterations {
         app.quit();
         return; // critical for the app to gracefully close
     }
+
+
     for i in 0..simulation.all_players_vector.len() {
         
         let highrewards: Vec<&Player> = simulation.all_players_vector[i].rewards(&simulation.all_players_vector, i, PlayerType::HighReward); 
@@ -106,7 +108,7 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
                 
                 if simulation.all_players_vector[i].get_consumed(&players, scores) {
                     simulation.all_players_vector[i].player_type = PlayerType::Consumed;
-                    simulation.amount -= 1;
+                    simulation.scores_left -= 1;
                 }
                 simulation.all_players_vector[i].direction += vec2(0.0, 0.0);
             }
@@ -116,6 +118,19 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
         println!("Chaser Scores: {:?}", simulation.chaser_scores);
 
         simulation.all_players_vector[i].update(); 
+
+
+        if simulation.scores_left == 0 {
+            reset_all(&mut simulation.all_players_vector);
+            simulation.iteration += 1;
+            simulation.scores_left =  HIGHREWARDS + LOWREWARDS;
+            simulation.chaser_scores = Scores {
+                close_score: 0.0,
+                high_score: 0.0,
+                smart_score: 0.0,
+            };
+        }
+
         // prevent players to leave the screen
         let screen_right = app.window_rect().right() as f32; // half of width pixels
         let screen_top = app.window_rect().top() as f32; // half of height pixels
@@ -166,30 +181,27 @@ fn end(app: &App, model: Simulation) {
     println!("Exiting application...");
 }
 
-fn process_player_action(player: &mut Player, highrewards: &Vec<&Player>, lowrewards: &Vec<&Player>, players: &Vec<&Player>, scores: &mut Scores, simulation: &mut Simulation) {
-    match player.player_type {
-        PlayerType::ChaseHighest => {
-            let chase_result = player.chase_highest_rewards(highrewards, lowrewards);
-            player.direction += chase_result.direction;
-            player.target_id = chase_result.target_id;
-        }
-        PlayerType::ChaseClosest => {
-            let chase_result = player.chase_closest_rewards(highrewards, lowrewards);
-            player.direction += chase_result.direction;
-            player.target_id = chase_result.target_id;
-        }
-        PlayerType::ChaseSmart => {
-            let chase_result = player.chase_smart_rewards(highrewards, lowrewards);
-            player.direction += chase_result.direction;
-            player.target_id = chase_result.target_id;
-        }
-        PlayerType::HighReward | PlayerType::LowReward => {
-            if player.get_consumed(players, scores) {
-                player.player_type = PlayerType::Consumed;
-                simulation.amount -= 1;
+fn reset_all(all_players: &mut Vec<Player>) {
+    
+    let mut high_reward_count = 0; 
+
+    for player in all_players {
+        
+        if player.player_type == PlayerType::Consumed {
+            
+            if high_reward_count < HIGHREWARDS {
+                player.player_type = PlayerType::HighReward;
+                player.position = vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
+                player.value = HIGHVALUE;
+                high_reward_count += 1;
+            } else {
+                player.player_type = PlayerType::LowReward;
+                player.position = vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
+                player.value = LOWVALUE;
             }
-            player.direction += vec2(0.0, 0.0);
+        } else {
+            player.target_id = 0;
+            player.position = vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
         }
-        _ => {}
     }
 }
