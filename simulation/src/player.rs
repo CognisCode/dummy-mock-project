@@ -116,8 +116,8 @@ impl Player {
 
         if self.player_type != PlayerType::HighReward && self.player_type != PlayerType::LowReward && self.player_type != PlayerType::Consumed {
             
-            self.position += self.direction.normalize() * 3.0;   
-            // angle vector is previous direction + new direction and then normalized to keep te step size equal 
+            self.position += self.direction.normalize() * 10.0;   
+            // angle vector is previous direction + new direction and then normalized to keep te step size equal to max step size
             self.angle_vec += self.direction;
             self.angle_vec = self.angle_vec.clamp_length(self.max_step_size,self.max_step_size);
         }
@@ -136,7 +136,6 @@ impl Player {
             self.position.y = top
         }
     }
-
 
     pub fn rewards<'a>(&self, all_players: &'a Vec<Player>, player_index: usize, player_type: PlayerType) -> Vec<&'a Player> {
         
