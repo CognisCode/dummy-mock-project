@@ -1,14 +1,17 @@
+#![allow(unused)] // silence unused warnings while exploring (to comment out)
+
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 use nannou::prelude::*;
 
+mod redis_handler;
+use redis_handler::redis_sender;
+
 mod player;
 use player::{Player, PlayerType};
 
 fn main() {
-    let mut chaser_score: Arc<Mutex<i32>> = Arc::new(Mutex::new(0));
-    // this will be a separate thread
     nannou::app(simulation).update(next_step).run();
 }
 
@@ -23,6 +26,14 @@ pub const LOWVALUE: f32 = 50.0;
 
 struct Simulation {
     all_players_vector: Vec<Player>, 
+    chaser_scores: Scores,
+}
+
+#[derive(Debug)]
+pub struct Scores {
+    smart_score: f32,
+    high_score: f32,
+    close_score: f32
 }
 
 fn simulation(app: &App) -> Simulation {
@@ -35,6 +46,12 @@ fn simulation(app: &App) -> Simulation {
         .unwrap();
 
     let mut all_players_vector = Vec::new();
+    
+    let mut chaser_scores = Scores {
+        close_score: 0.0,
+        high_score: 0.0,
+        smart_score: 0.0,
+    };
 
     // Create HighReward and LowReward
     create_players(1, HIGHREWARDS, PlayerType::HighReward, HIGHVALUE, &mut all_players_vector);
@@ -45,7 +62,7 @@ fn simulation(app: &App) -> Simulation {
     create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector);
     create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector);
 
-    Simulation { all_players_vector }
+    Simulation {all_players_vector, chaser_scores }
 }
 
 fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
@@ -55,6 +72,8 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
         let highrewards = simulation.all_players_vector[i].rewards(&simulation.all_players_vector, i, PlayerType::HighReward); 
         let lowrewards = simulation.all_players_vector[i].rewards(&simulation.all_players_vector, i, PlayerType::LowReward); 
         let players = simulation.all_players_vector[i].players(&simulation.all_players_vector, i); 
+        
+        let mut scores: &mut Scores = &mut simulation.chaser_scores;
 
         match simulation.all_players_vector[i].player_type {
             PlayerType::ChaseHighest => {
@@ -74,14 +93,19 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
             }
             PlayerType::HighReward | PlayerType::LowReward => {
                 
-                if simulation.all_players_vector[i].get_consumed(&players) {
+                if simulation.all_players_vector[i].get_consumed(&players, scores) {
                     simulation.all_players_vector[i].player_type = PlayerType::Consumed;
-                    // update score
                 }
                 simulation.all_players_vector[i].direction += vec2(0.0, 0.0);
             }
             _ => {}
         }
+
+        println!("Chaser Scores: {:?}", simulation.chaser_scores);
+        // // function to slow
+        // if let Err(e) = redis_sender::write_scores_to_redis(&simulation.chaser_scores) {
+        //     eprintln!("Failed to write scores to Redis: {}", e);
+        // }
 
         simulation.all_players_vector[i].update(); 
         // prevent players to leave the screen

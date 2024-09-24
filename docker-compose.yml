@@ -1,0 +1,9 @@
+name: yassin-portfolio
+services:
+  redis:
+    container_name: redis-simulation-cache
+    image: redis
+    # network_mode: host
+    ports:
+      - 6379:6379
+    privileged: true

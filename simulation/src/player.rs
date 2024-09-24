@@ -2,7 +2,7 @@ use std::ops::{Div, Mul, Sub};
 
 use nannou::prelude::*;
 
-use crate::{HIGHVALUE, LOWVALUE};
+use crate::{Scores, HIGHVALUE, LOWVALUE};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum PlayerType {
@@ -163,14 +163,27 @@ impl Player {
         players
     }
 
-    pub fn get_consumed(&self, chasers: &Vec<&Player>) -> bool {
+    pub fn get_consumed(&self, chasers: &Vec<&Player>, chaser_scores: &mut Scores) -> bool {
         let len = chasers.len();
 
         if len == 0 {
             return false;
         }
-        for i in chasers {
-            if self.position.distance(i.position) < 30.0 && self.id == i.target_id {
+        for chaser in chasers {
+            if self.position.distance(chaser.position) < 30.0 && self.id == chaser.target_id {
+                
+                let mut reward: f32 = 0.0;
+                match self.player_type {
+                    PlayerType::HighReward => {reward = HIGHVALUE},
+                    PlayerType::LowReward => {reward = LOWVALUE},
+                    _ => {println!("something went wrong at the consuming part")}
+                }
+                match chaser.player_type {
+                    PlayerType::ChaseHighest => {chaser_scores.high_score += reward;},
+                    PlayerType::ChaseClosest => {chaser_scores.close_score += reward;},
+                    PlayerType::ChaseSmart => {chaser_scores.smart_score += reward;},
+                    _ => {}
+                } 
                 return true;
             }
         }
