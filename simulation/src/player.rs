@@ -1,7 +1,5 @@
-use std::ops::{Div, Mul, Sub};
-
+use std::ops::Sub;
 use nannou::prelude::*;
-
 use crate::{Scores, HIGHVALUE, LOWVALUE};
 
 #[derive(Debug, PartialEq, Clone)]
@@ -14,7 +12,7 @@ pub enum PlayerType {
     LowReward
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Player {
     pub position: Vec2, // 2D-vector
     pub angle_vec: Vec2,
@@ -108,8 +106,6 @@ impl Player {
                 .x_y(self.position.x, self.position.y)
                 .rgba(red, green, blue, 0.85);
         }
-
-
     }
 
     pub fn update(&mut self) {
@@ -124,18 +120,18 @@ impl Player {
         self.direction = vec2(0.0, 0.0); // reset accelartion
     }
 
-    pub fn edge(&mut self, top: f32, right: f32) {
-        if self.position.x > right {
-            self.position.x = -right;
-        } else if self.position.x < -right {
-            self.position.x = right
-        }
-        if self.position.y > top {
-            self.position.y = -top;
-        } else if self.position.y < -top {
-            self.position.y = top
-        }
-    }
+    // pub fn edge(&mut self, top: f32, right: f32) {
+    //     if self.position.x > right {
+    //         self.position.x = -right;
+    //     } else if self.position.x < -right {
+    //         self.position.x = right
+    //     }
+    //     if self.position.y > top {
+    //         self.position.y = -top;
+    //     } else if self.position.y < -top {
+    //         self.position.y = top
+    //     }
+    // }
 
     pub fn rewards<'a>(&self, all_players: &'a Vec<Player>, player_index: usize, player_type: PlayerType) -> Vec<&'a Player> {
         
@@ -246,7 +242,6 @@ impl Player {
         }
         return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}         
     }
-
 
 pub fn chase_smart_rewards(&self, highrewards: &Vec<&Player>, lowrewards: &Vec<&Player>) -> TargetGoal {
 
