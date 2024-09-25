@@ -145,9 +145,9 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
 
     let osc_addr = "/simulation/scores".to_string();
     let args = vec![
+        osc::Type::Float(simulation.chaser_scores.smart_score),
         osc::Type::Float(simulation.chaser_scores.high_score),
-        osc::Type::Float(simulation.chaser_scores.close_score),
-        osc::Type::Float(simulation.chaser_scores.smart_score)]; 
+        osc::Type::Float(simulation.chaser_scores.close_score)]; 
     let packet = (osc_addr, args);
     simulation.sender.send(packet).ok();
 

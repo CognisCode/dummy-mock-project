@@ -1,3 +1,7 @@
 /simulation/target
 /simulation/Cargo.lock
 /simulation/src/test.rs
+/data-parser/.mvn
+/data-parser/mvnw
+/data-parser/mvnw.cmd
+/data-parser/.gitignore
