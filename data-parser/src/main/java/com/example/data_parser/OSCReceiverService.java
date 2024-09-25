@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class OSCReceiverService {
@@ -46,16 +47,41 @@ public class OSCReceiverService {
     @Transactional
     private void handleOSCMessage(OSCMessageEvent event) {
         OSCMessage message = event.getMessage();
+        for (Object argument : message.getArguments()) {
+            System.out.println("Argument: " + argument);
+        }
+
         System.out.println("Received OSC Message: " + message.getAddress());
 
-        Float smartscore = (Float) message.getArguments().get(0);
-        Float highScore = (Float) message.getArguments().get(1);
-        Float closeScore = (Float) message.getArguments().get(2);
+        Float smart_score = (Float) message.getArguments().get(0);
+        Float high_score = (Float) message.getArguments().get(1);
+        Float close_score = (Float) message.getArguments().get(2);
+
+        Float smart_start_x =  (Float) message.getArguments().get(3);
+        Float smart_start_y =  (Float) message.getArguments().get(4);
+
+        Float high_start_x =  (Float) message.getArguments().get(5);
+        Float high_start_y =  (Float) message.getArguments().get(6);
+
+        Float close_start_x =  (Float) message.getArguments().get(7);
+        Float close_start_y =  (Float) message.getArguments().get(8);
+
+
 
         SimulationData simulationData = new SimulationData();
-        simulationData.setSmartscore(smartscore);
-        simulationData.setHighScore(highScore);
-        simulationData.setCloseScore(closeScore);
+        simulationData.setSmartScore(smart_score);
+        simulationData.setHighScore(high_score);
+        simulationData.setCloseScore(close_score);
+
+        simulationData.setSmartStartX(smart_start_x);
+        simulationData.setSmartStartY(smart_start_y);
+
+        simulationData.setHighStartX(high_start_x);
+        simulationData.setHighStartY(high_start_y);
+
+        simulationData.setCloseStartX(close_start_x);
+        simulationData.setCloseStartY(close_start_y);
+
         simulationData.setTimestamp(Instant.now());
 
         // Save the oscData to the database

@@ -174,9 +174,9 @@ impl Player {
                     _ => {println!("something went wrong at the consuming part")}
                 }
                 match chaser.player_type {
+                    PlayerType::ChaseSmart => {chaser_scores.smart_score += reward;},
                     PlayerType::ChaseHighest => {chaser_scores.high_score += reward;},
                     PlayerType::ChaseClosest => {chaser_scores.close_score += reward;},
-                    PlayerType::ChaseSmart => {chaser_scores.smart_score += reward;},
                     _ => {}
                 } 
                 return true;

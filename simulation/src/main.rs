@@ -116,7 +116,7 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
             _ => {}
         }
 
-        println!("Chaser Scores: {:?}", simulation.chaser_scores);
+        // println!("Chaser Scores: {:?}", simulation.chaser_scores);
 
         simulation.all_players_vector[i].update(); 
 
@@ -153,7 +153,17 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
         osc::Type::Float(simulation.chaser_scores.smart_score),
         osc::Type::Float(simulation.chaser_scores.high_score),
         osc::Type::Float(simulation.chaser_scores.close_score),
+        osc::Type::Float(simulation.chaser_scores.smart_start[0]),
+        osc::Type::Float(simulation.chaser_scores.smart_start[1]),
+        osc::Type::Float(simulation.chaser_scores.high_start[0]),
+        osc::Type::Float(simulation.chaser_scores.high_start[1]),
+        osc::Type::Float(simulation.chaser_scores.close_start[0]),
+        osc::Type::Float(simulation.chaser_scores.close_start[1]),
         ]; 
+        println!("args: {:?}", args);
+
+
+
     let packet = (osc_addr, args);
     simulation.sender.send(packet).ok();
 
@@ -198,9 +208,9 @@ fn reset_all(simulation: &mut Simulation) {
     simulation.scores_left =  HIGHREWARDS + LOWREWARDS;
     
     simulation.chaser_scores = Scores {
-        close_score: 0.0,
-        high_score: 0.0,
         smart_score: 0.0,
+        high_score: 0.0,
+        close_score: 0.0,
         smart_start: vec2(0.0, 0.0),
         high_start: vec2(0.0, 0.0),
         close_start: vec2(0.0, 0.0)
