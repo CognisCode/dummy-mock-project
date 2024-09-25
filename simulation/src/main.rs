@@ -14,7 +14,7 @@ const CLOSECHASER: usize = 1;
 const HIGHCHASER: usize = 1; 
 const HIGHREWARDS: usize = 50; 
 const LOWREWARDS: usize = 50; 
-const MAXITERATIONS: usize = 3; 
+const MAXITERATIONS: usize = 30; 
 
 pub const HIGHVALUE: f32 = 200.0;
 pub const LOWVALUE: f32 = 50.0;
@@ -32,7 +32,10 @@ struct Simulation {
 pub struct Scores {
     smart_score: f32,
     high_score: f32,
-    close_score: f32
+    close_score: f32,
+    smart_start: Vec2,
+    high_start: Vec2,
+    close_start: Vec2,
 }
 
 fn simulation(app: &App) -> Simulation {
@@ -53,6 +56,9 @@ fn simulation(app: &App) -> Simulation {
         close_score: 0.0,
         high_score: 0.0,
         smart_score: 0.0,
+        smart_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0), 
+        high_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0), 
+        close_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0)
     };
 
     let port = 9007;
@@ -63,16 +69,14 @@ fn simulation(app: &App) -> Simulation {
         .connect(target_addr)
         .expect("Could not connect to socket at address");
 
-
-
     // Create HighReward and LowReward
     create_rewards(1, HIGHREWARDS, PlayerType::HighReward, HIGHVALUE, &mut all_players_vector);
     create_rewards(100, LOWREWARDS, PlayerType::LowReward, LOWVALUE, &mut all_players_vector);
 
     // Create chasers
-    create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector);
-    create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector);
-    create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector);
+    create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, chaser_scores.high_start);
+    create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector, chaser_scores.close_start);
+    create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector, chaser_scores.smart_start);
 
     Simulation {all_players_vector, chaser_scores, scores_left, iteration, max_iterations, sender}
 }
@@ -143,11 +147,13 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
         simulation.all_players_vector[i].show(&draw); 
     }
 
+    // send osc data to port 9007 
     let osc_addr = "/simulation/scores".to_string();
     let args = vec![
         osc::Type::Float(simulation.chaser_scores.smart_score),
         osc::Type::Float(simulation.chaser_scores.high_score),
-        osc::Type::Float(simulation.chaser_scores.close_score)]; 
+        osc::Type::Float(simulation.chaser_scores.close_score),
+        ]; 
     let packet = (osc_addr, args);
     simulation.sender.send(packet).ok();
 
@@ -177,9 +183,10 @@ fn create_rewards(id_start: i16, count: usize, player_type: PlayerType, value: f
     }
 }
 
-fn create_chasers(count: usize, player_type: PlayerType, all_players: &mut Vec<Player>) {
+fn create_chasers(count: usize, player_type: PlayerType, all_players: &mut Vec<Player>, start: Vec2) {
+
     for _ in 0..count {
-        let player = create_player(0, player_type.clone(), 0.0, (random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
+        let player = create_player(0, player_type.clone(), 0.0, start[0], start[1]) ;
         all_players.push(player);
     }
 }
@@ -187,6 +194,17 @@ fn create_chasers(count: usize, player_type: PlayerType, all_players: &mut Vec<P
 fn reset_all(simulation: &mut Simulation) {
     
     let mut high_reward_count = 0; 
+    simulation.iteration += 1;
+    simulation.scores_left =  HIGHREWARDS + LOWREWARDS;
+    
+    simulation.chaser_scores = Scores {
+        close_score: 0.0,
+        high_score: 0.0,
+        smart_score: 0.0,
+        smart_start: vec2(0.0, 0.0),
+        high_start: vec2(0.0, 0.0),
+        close_start: vec2(0.0, 0.0)
+    };
 
     for i in 0..simulation.all_players_vector.len() {
         
@@ -203,18 +221,23 @@ fn reset_all(simulation: &mut Simulation) {
                 simulation.all_players_vector[i].value = LOWVALUE;
             }
         } else {
+            let start_x: f32 = (random_f32() - 0.5) * 2400.0;
+            let start_y: f32 = (random_f32() - 0.5) * 1200.0;
+
             simulation.all_players_vector[i].target_id = 0;
-            simulation.all_players_vector[i].position = vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
+            simulation.all_players_vector[i].position = vec2(start_x, start_y);
+
+            match simulation.all_players_vector[i].player_type {
+                PlayerType::ChaseClosest => simulation.chaser_scores.close_start = vec2(start_x, start_y),
+                PlayerType::ChaseHighest => simulation.chaser_scores.high_start = vec2(start_x, start_y),
+                PlayerType::ChaseSmart => simulation.chaser_scores.smart_start = vec2(start_x, start_y),
+                _ => {},
+            }
+
         }
     }
 
-    simulation.iteration += 1;
-    simulation.scores_left =  HIGHREWARDS + LOWREWARDS;
-    simulation.chaser_scores = Scores {
-        close_score: 0.0,
-        high_score: 0.0,
-        smart_score: 0.0,
-    };
+   
 }
 
 fn end(_app: &App, _model: Simulation) {
