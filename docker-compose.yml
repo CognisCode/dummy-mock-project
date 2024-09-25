@@ -1,9 +1,24 @@
-name: yassin-portfolio
+name: simulation-mock-project
 services:
-  redis:
-    container_name: redis-simulation-cache
-    image: redis
-    # network_mode: host
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: simulation_data       # Your database name
+      POSTGRES_USER: yassin           # Your database user
+      POSTGRES_PASSWORD: yassin       # Your database password
     ports:
-      - 6379:6379
+      - "5432:5432"                           # Expose port 5432
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data # Persist data
+      - ./initdb:/docker-entrypoint-initdb.d  # Mount initdb folder for initialization scripts
     privileged: true
+    
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"  # Admin email
+      PGADMIN_DEFAULT_PASSWORD: "admin"           # Admin password
+    ports:
+      - "9090:80"                                  # Expose pgAdmin on port 8080
+    depends_on:
+      - postgres

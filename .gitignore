@@ -5,3 +5,10 @@
 /data-parser/mvnw
 /data-parser/mvnw.cmd
 /data-parser/.gitignore
+/postgres_data
+/data-analysis/bin
+/data-analysis/include
+/data-analysis/lib
+/data-analysis/lib64
+/data-analysis/pyenv.cfg
+/data-analysis/share
