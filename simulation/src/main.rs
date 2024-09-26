@@ -74,9 +74,9 @@ fn simulation(app: &App) -> Simulation {
     create_rewards(100, LOWREWARDS, PlayerType::LowReward, LOWVALUE, &mut all_players_vector);
 
     // Create chasers
-    create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, chaser_scores.high_start);
     create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector, chaser_scores.close_start);
     create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector, chaser_scores.smart_start);
+    create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, chaser_scores.high_start);
 
     Simulation {all_players_vector, chaser_scores, scores_left, iteration, max_iterations, sender}
 }

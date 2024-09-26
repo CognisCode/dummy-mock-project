@@ -178,8 +178,11 @@ impl Player {
         if len == 0 {
             return false;
         }
+
+        
         for chaser in chasers {
-            if self.position.distance(chaser.position) < 10.0 && self.id == chaser.target_id {
+
+            if self.position.distance(chaser.position) < 5.0 && self.id == chaser.target_id {
                 
                 let mut reward: f32 = 0.0;
                 match self.player_type {
