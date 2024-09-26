@@ -1,6 +1,6 @@
 use std::ops::Sub;
 use nannou::prelude::*;
-use crate::{Scores, HIGHVALUE, LOWVALUE};
+use crate::{Progress, HIGHVALUE, LOWVALUE};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum PlayerType {
@@ -108,17 +108,31 @@ impl Player {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, chaser_scores: &mut Progress) {
 
         if self.player_type != PlayerType::HighReward && self.player_type != PlayerType::LowReward && self.player_type != PlayerType::Consumed {
             
-            self.position += self.direction.normalize() * 10.0;   
+            self.position += self.direction.normalize() * 10.0;  
+
             // angle vector is previous direction + new direction and then normalized to keep te step size equal to max step size
             self.angle_vec += self.direction;
             self.angle_vec = self.angle_vec.clamp_length(self.max_step_size,self.max_step_size);
+        
+        
+            match self.player_type{ 
+                PlayerType::ChaseClosest => {chaser_scores.close_start = self.position},
+                PlayerType::ChaseHighest => {chaser_scores.high_start = self.position},
+                PlayerType::ChaseSmart => {chaser_scores.smart_start = self.position},
+                _  => {}
+            }
+        
         }
+
+        
         self.direction = vec2(0.0, 0.0); // reset accelartion
     }
+
+
 
     // pub fn edge(&mut self, top: f32, right: f32) {
     //     if self.position.x > right {
@@ -158,14 +172,14 @@ impl Player {
         players
     }
 
-    pub fn get_consumed(&self, chasers: &Vec<&Player>, chaser_scores: &mut Scores) -> bool {
+    pub fn get_consumed(&self, chasers: &Vec<&Player>, chaser_scores: &mut Progress) -> bool {
         let len = chasers.len();
 
         if len == 0 {
             return false;
         }
         for chaser in chasers {
-            if self.position.distance(chaser.position) < 30.0 && self.id == chaser.target_id {
+            if self.position.distance(chaser.position) < 10.0 && self.id == chaser.target_id {
                 
                 let mut reward: f32 = 0.0;
                 match self.player_type {

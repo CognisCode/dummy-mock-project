@@ -21,7 +21,7 @@ pub const LOWVALUE: f32 = 50.0;
 
 struct Simulation {
     all_players_vector: Vec<Player>, 
-    chaser_scores: Scores,
+    chaser_scores: Progress,
     scores_left: usize,
     iteration: usize,
     max_iterations: usize,
@@ -29,7 +29,7 @@ struct Simulation {
 }
 
 #[derive(Debug)]
-pub struct Scores {
+pub struct Progress {
     smart_score: f32,
     high_score: f32,
     close_score: f32,
@@ -52,7 +52,7 @@ fn simulation(app: &App) -> Simulation {
     let max_iterations = MAXITERATIONS;
     let scores_left = HIGHREWARDS + LOWREWARDS;
 
-    let chaser_scores = Scores {
+    let chaser_scores = Progress {
         close_score: 0.0,
         high_score: 0.0,
         smart_score: 0.0,
@@ -116,9 +116,9 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
             _ => {}
         }
 
-        // println!("Chaser Scores: {:?}", simulation.chaser_scores);
+        // println!("Chaser Progress: {:?}", simulation.chaser_scores);
 
-        simulation.all_players_vector[i].update(); 
+        simulation.all_players_vector[i].update(&mut simulation.chaser_scores); 
 
         if simulation.scores_left == 0 {
             reset_all(simulation);
@@ -207,7 +207,7 @@ fn reset_all(simulation: &mut Simulation) {
     simulation.iteration += 1;
     simulation.scores_left =  HIGHREWARDS + LOWREWARDS;
     
-    simulation.chaser_scores = Scores {
+    simulation.chaser_scores = Progress {
         smart_score: 0.0,
         high_score: 0.0,
         close_score: 0.0,
