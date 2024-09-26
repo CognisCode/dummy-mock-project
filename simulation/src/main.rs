@@ -1,5 +1,3 @@
-// #![allow(unused)] // silence unused warnings while exploring (to comment out)
-
 use nannou_osc as osc;
 use nannou::prelude::*;
 mod player;
@@ -15,7 +13,6 @@ const HIGHCHASER: usize = 1;
 const HIGHREWARDS: usize = 50; 
 const LOWREWARDS: usize = 50; 
 const MAXITERATIONS: usize = 30; 
-
 pub const HIGHVALUE: f32 = 200.0;
 pub const LOWVALUE: f32 = 50.0;
 
@@ -69,11 +66,10 @@ fn simulation(app: &App) -> Simulation {
         .connect(target_addr)
         .expect("Could not connect to socket at address");
 
-    // Create HighReward and LowReward
+
     create_rewards(1, HIGHREWARDS, PlayerType::HighReward, HIGHVALUE, &mut all_players_vector);
     create_rewards(100, LOWREWARDS, PlayerType::LowReward, LOWVALUE, &mut all_players_vector);
 
-    // Create chasers
     create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector, chaser_scores.close_start);
     create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector, chaser_scores.smart_start);
     create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, chaser_scores.high_start);
@@ -82,7 +78,7 @@ fn simulation(app: &App) -> Simulation {
 }
 
 fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
-    
+    // function that determines the progress
     for i in 0..simulation.all_players_vector.len() {
         
         let highrewards: Vec<&Player> = simulation.all_players_vector[i].rewards(&simulation.all_players_vector, i, PlayerType::HighReward); 
@@ -116,8 +112,6 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
             _ => {}
         }
 
-        // println!("Chaser Progress: {:?}", simulation.chaser_scores);
-
         simulation.all_players_vector[i].update(&mut simulation.chaser_scores); 
 
         if simulation.scores_left == 0 {
@@ -147,8 +141,8 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
         simulation.all_players_vector[i].show(&draw); 
     }
 
-    // send osc data to port 9007 
     let osc_addr = "/simulation/scores".to_string();
+
     let args = vec![
         osc::Type::Float(simulation.chaser_scores.smart_score),
         osc::Type::Float(simulation.chaser_scores.high_score),
@@ -160,9 +154,6 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
         osc::Type::Float(simulation.chaser_scores.close_start[0]),
         osc::Type::Float(simulation.chaser_scores.close_start[1]),
         ]; 
-        println!("args: {:?}", args);
-
-
 
     let packet = (osc_addr, args);
     simulation.sender.send(packet).ok();
@@ -246,8 +237,6 @@ fn reset_all(simulation: &mut Simulation) {
 
         }
     }
-
-   
 }
 
 fn end(_app: &App, _model: Simulation) {

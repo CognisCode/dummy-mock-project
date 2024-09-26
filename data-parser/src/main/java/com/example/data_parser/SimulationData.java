@@ -16,16 +16,12 @@ public class SimulationData {
     private Float smart_score;
     private Float high_score;
     private Float close_score;
-
     private Float smart_start_x;
     private Float smart_start_y;
-
     private Float high_start_x;
     private Float high_start_y;
-
     private Float close_start_x;
     private Float close_start_y;
-
     private Instant timestamp;
 
     public Long getId() {

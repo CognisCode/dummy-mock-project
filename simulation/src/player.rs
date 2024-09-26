@@ -14,7 +14,7 @@ pub enum PlayerType {
 
 #[derive(Debug, Clone)]
 pub struct Player {
-    pub position: Vec2, // 2D-vector
+    pub position: Vec2,
     pub angle_vec: Vec2,
     pub player_type: PlayerType,
     pub direction: Vec2,
@@ -124,15 +124,10 @@ impl Player {
                 PlayerType::ChaseHighest => {chaser_scores.high_start = self.position},
                 PlayerType::ChaseSmart => {chaser_scores.smart_start = self.position},
                 _  => {}
-            }
-        
+            }        
         }
-
-        
         self.direction = vec2(0.0, 0.0); // reset accelartion
     }
-
-
 
     // pub fn edge(&mut self, top: f32, right: f32) {
     //     if self.position.x > right {
@@ -163,6 +158,7 @@ impl Player {
     pub fn players<'a>(&self, all_players: &'a Vec<Player>, player_index: usize) -> Vec<&'a Player> {
         
         let mut players = Vec::new();
+
         for i in 0..all_players.len() {
 
             if i != player_index  && all_players[i].player_type != PlayerType::HighReward && all_players[i].player_type != PlayerType::Consumed && all_players[i].player_type != PlayerType::LowReward {
@@ -173,18 +169,19 @@ impl Player {
     }
 
     pub fn get_consumed(&self, chasers: &Vec<&Player>, chaser_scores: &mut Progress) -> bool {
+
         let len = chasers.len();
 
         if len == 0 {
             return false;
         }
-
         
         for chaser in chasers {
 
             if self.position.distance(chaser.position) < 5.0 && self.id == chaser.target_id {
                 
                 let mut reward: f32 = 0.0;
+
                 match self.player_type {
                     PlayerType::HighReward => {reward = HIGHVALUE},
                     PlayerType::LowReward => {reward = LOWVALUE},
@@ -207,13 +204,13 @@ impl Player {
         if highrewards.len() + lowrewards.len() == 0 { 
            return TargetGoal{direction: vec2(0.0, 0.0), target_id: 0} 
         }
-                
+    
         // find nearest reward
         let mut shortest_distance = 100000000.0;
         let mut direction = Vec2::new(0.0, 0.0);
 
         let mut target_id = 0;
-        // find closest traget
+        // find closest target
         for reward in highrewards {
             if reward.position.distance(self.position) < shortest_distance {    
                 direction = reward.position.sub(self.position).normalize();
@@ -277,17 +274,17 @@ pub fn chase_smart_rewards(&self, highrewards: &Vec<&Player>, lowrewards: &Vec<&
              most_valuable = HIGHVALUE / reward.position.distance(self.position);
              target_id = reward.id; 
          }
-
      }
 
      for reward in lowrewards {
-         if LOWVALUE / reward.position.distance(self.position) > most_valuable {    
-             direction = reward.position.sub(self.position).normalize();
-             most_valuable =  LOWVALUE / reward.position.distance(self.position);
-             target_id = reward.id; 
-         }   
+        if LOWVALUE / reward.position.distance(self.position) > most_valuable {    
+            direction = reward.position.sub(self.position).normalize();
+            most_valuable =  LOWVALUE / reward.position.distance(self.position);
+            target_id = reward.id; 
+        }   
      }
 
      return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}               
-}
+    }
+
 }
