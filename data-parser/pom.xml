@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>data-parser</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+<!--	<version>0.0.1-SNAPSHOT</version>-->
 	<name>data-parser</name>
 	<description>data parser for osc data into Timescaledb</description>
 	<url/>
