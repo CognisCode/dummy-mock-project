@@ -1,7 +1,14 @@
+use std::collections::btree_map;
+
 use nannou_osc as osc;
 use nannou::prelude::*;
+
 mod player;
 use player::{Player, PlayerType};
+
+
+mod genetics;
+use genetics::*;
 
 fn main() {
     nannou::app(simulation).update(next_step).exit(end).run();
@@ -10,13 +17,14 @@ fn main() {
 const SMARTCHASER: usize = 1;
 const CLOSECHASER: usize = 1; 
 const HIGHCHASER: usize = 1; 
-const HIGHREWARDS: usize = 50; 
-const LOWREWARDS: usize = 50; 
+const GENETICCHASER: usize = 1; 
+const HIGHREWARDS: usize = 100; 
+const LOWREWARDS: usize = 100; 
 const MAXITERATIONS: usize = 30; 
 pub const HIGHVALUE: f32 = 200.0;
 pub const LOWVALUE: f32 = 50.0;
 
-struct Simulation {
+pub struct Simulation {
     all_players_vector: Vec<Player>, 
     chaser_scores: Progress,
     scores_left: usize,
@@ -30,10 +38,13 @@ pub struct Progress {
     smart_score: f32,
     high_score: f32,
     close_score: f32,
+    genetic_score: f32, 
     smart_start: Vec2,
     high_start: Vec2,
     close_start: Vec2,
+    genetic_start: Vec2
 }
+
 
 fn simulation(app: &App) -> Simulation {
 
@@ -53,9 +64,12 @@ fn simulation(app: &App) -> Simulation {
         close_score: 0.0,
         high_score: 0.0,
         smart_score: 0.0,
+        genetic_score: 0.0,
         smart_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0), 
         high_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0), 
-        close_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0)
+        close_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0),
+        genetic_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0)
+
     };
 
     let port = 9007;
@@ -73,6 +87,9 @@ fn simulation(app: &App) -> Simulation {
     create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector, chaser_scores.close_start);
     create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector, chaser_scores.smart_start);
     create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, chaser_scores.high_start);
+    create_chasers(GENETICCHASER, PlayerType::Genetic, &mut all_players_vector, chaser_scores.high_start);
+
+    genetics::init_chromosones();
 
     Simulation {all_players_vector, chaser_scores, scores_left, iteration, max_iterations, sender}
 }
@@ -101,6 +118,11 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
                 simulation.all_players_vector[i].direction += chase_result.direction;
                 simulation.all_players_vector[i].target_id = chase_result.target_id;
             }
+            PlayerType::Genetic => {
+                let chase_result = simulation.all_players_vector[i].chase_genetic_rewards(&players, &highrewards, &lowrewards);
+                simulation.all_players_vector[i].direction += chase_result.direction;
+                simulation.all_players_vector[i].target_id = chase_result.target_id;
+            }
             PlayerType::HighReward | PlayerType::LowReward => {
                 
                 if simulation.all_players_vector[i].get_consumed(&players, &mut simulation.chaser_scores) {
@@ -115,6 +137,7 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
         simulation.all_players_vector[i].update(&mut simulation.chaser_scores); 
 
         if simulation.scores_left == 0 {
+            revaluate(simulation); // insert into binary tree map
             reset_all(simulation);
         }
 
@@ -122,7 +145,6 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
             app.quit();
             return; // critical for the app to gracefully close
         }
-
         // prevent players to leave the screen, not needed in current setup
         // let screen_right = app.window_rect().right() as f32; // half of width pixels
         // let screen_top = app.window_rect().top() as f32; // half of height pixels
@@ -202,9 +224,11 @@ fn reset_all(simulation: &mut Simulation) {
         smart_score: 0.0,
         high_score: 0.0,
         close_score: 0.0,
+        genetic_score: 0.0,
         smart_start: vec2(0.0, 0.0),
         high_start: vec2(0.0, 0.0),
-        close_start: vec2(0.0, 0.0)
+        close_start: vec2(0.0, 0.0),
+        genetic_start: vec2(0.0, 0.0),
     };
 
     for i in 0..simulation.all_players_vector.len() {
@@ -242,3 +266,4 @@ fn reset_all(simulation: &mut Simulation) {
 fn end(_app: &App, _model: Simulation) {
     println!("Exiting application...");
 }
+

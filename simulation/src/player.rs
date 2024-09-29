@@ -7,6 +7,7 @@ pub enum PlayerType {
     ChaseClosest,
     ChaseHighest,
     ChaseSmart,
+    Genetic,
     Consumed,
     HighReward,
     LowReward
@@ -37,6 +38,7 @@ impl Player {
             PlayerType::ChaseHighest => {3.0},
             PlayerType::ChaseClosest => {3.0},
             PlayerType::ChaseSmart => {3.0},
+            PlayerType::Genetic => {3.0},
             PlayerType::Consumed => {0.0},
             PlayerType::HighReward => {0.0},
             PlayerType::LowReward => {0.0},
@@ -69,6 +71,11 @@ impl Player {
             },
             PlayerType::ChaseClosest => {
                 red = 139.0;
+                green = 0.0;
+                blue = 139.0;
+            },
+            PlayerType::Genetic=> {
+                red = 0.0;
                 green = 0.0;
                 blue = 139.0;
             },
@@ -123,6 +130,7 @@ impl Player {
                 PlayerType::ChaseClosest => {chaser_scores.close_start = self.position},
                 PlayerType::ChaseHighest => {chaser_scores.high_start = self.position},
                 PlayerType::ChaseSmart => {chaser_scores.smart_start = self.position},
+                PlayerType::Genetic=> {chaser_scores.smart_start = self.position},
                 _  => {}
             }        
         }
@@ -191,6 +199,7 @@ impl Player {
                     PlayerType::ChaseSmart => {chaser_scores.smart_score += reward;},
                     PlayerType::ChaseHighest => {chaser_scores.high_score += reward;},
                     PlayerType::ChaseClosest => {chaser_scores.close_score += reward;},
+                    PlayerType::Genetic => {chaser_scores.genetic_score += reward;}
                     _ => {}
                 } 
                 return true;
@@ -286,5 +295,46 @@ pub fn chase_smart_rewards(&self, highrewards: &Vec<&Player>, lowrewards: &Vec<&
 
      return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}               
     }
+    
+    pub fn chase_genetic_rewards(&self, players: &Vec<&Player>,  highrewards: &Vec<&Player>, lowrewards: &Vec<&Player>) -> TargetGoal {
+
+        if highrewards.len() + lowrewards.len() == 0 { 
+            return TargetGoal{direction: vec2(0.0, 0.0), target_id: 0} 
+         }
+                 
+         let mut most_valuable = 0.0;
+         let mut direction = Vec2::new(0.0, 0.0);
+         let mut target_id = 0;
+         
+        for reward in highrewards {
+
+            let mut chaser_distance_reward: f32 = 0.0;
+
+            for player in players{    
+                if player.player_type != PlayerType::Genetic {
+                    chaser_distance_reward += player.position.distance(reward.position);
+                }        
+            };
+
+                if HIGHVALUE / reward.position.distance(self.position) > most_valuable {    
+                    direction = reward.position.sub(self.position).normalize();
+                    most_valuable = HIGHVALUE / reward.position.distance(self.position);
+                    target_id = reward.id; 
+                };
+            
+        }
+        
+
+
+         for reward in lowrewards {
+            if LOWVALUE / reward.position.distance(self.position) > most_valuable {    
+                direction = reward.position.sub(self.position).normalize();
+                most_valuable =  LOWVALUE / reward.position.distance(self.position);
+                target_id = reward.id; 
+            }   
+         }
+    
+         return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}               
+        }
 
 }
