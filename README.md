@@ -1,4 +1,4 @@
-![](https://github.com/YassinYassinYassin/yassin-mock-project/blob/master/resources/mock_project_3.gif)
+![](https://github.com/YassinYassinYassin/yassin-mock-project/blob/master/resources/mock-project-3.gif)
 
 
 # Mock project
