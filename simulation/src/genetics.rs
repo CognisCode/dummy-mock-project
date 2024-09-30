@@ -1,4 +1,3 @@
-use super::player::{Player, PlayerType};
 use nannou::prelude::*;
 use super::Simulation;
 
@@ -27,8 +26,9 @@ pub struct Chromosome {
 
 pub fn revaluate(simulation: &mut Simulation) {
     
-    simulation.genetic_tree.entry(simulation.progress.genetic_score).or_insert( simulation.progress.chromosome);
+    // simple genetic algorthim after 5 iterations take the highsest scoring weights and and small mutations
 
+    simulation.genetic_tree.entry(simulation.progress.genetic_score).or_insert( simulation.progress.chromosome);
 
     if simulation.iteration > 5  {
 

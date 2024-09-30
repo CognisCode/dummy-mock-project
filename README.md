@@ -1,10 +1,10 @@
-![](https://github.com/YassinYassinYassin/yassin-mock-project/blob/master/resources/mock-project.gif)
+![](https://github.com/YassinYassinYassin/yassin-mock-project/blob/master/resources/mock-project_2.gif)
 
 
 # Mock project
 
 **Description:**  
-This mock project simulates a complex setting (data generation with non-trivial behaviour) using a simulation written in Rust which processes and stores the data via a Java Spring Boot application that writes to a PostgreSQL database, and then performs data analysis with a Python application. (no logging or proper error handling has been implemented yet)
+This mock project simulates a complex setting (data generation with non-trivial behaviour) using a simulation written in Rust which processes and stores the data via a Java Spring Boot application that writes to a PostgreSQL database, and then performs data analysis with a Python application. (no logging, proper error handling or testing has been implemented yet)
 
 ## Table of Contents
 1. [Project Structure](#project-structure)
@@ -28,10 +28,11 @@ This mock project simulates a complex setting (data generation with non-trivial 
 ## 2. Code Instructions
 
 ### 2.1 Rust Simulation
-This program uses nannou to setup a visual simulation of a resource gathering game. Three chasers _smart_, _close_ and _high_ are generated. The goal is to accumelate as much resources as possible. Their are high resources labeled green worth 200 and low rewards labeled blue worth 50. 
+This program uses nannou to setup a visual simulation of a resource gathering game. Three chasers _smart_, _close_, _high_ and _genetic_ are generated. The goal is to accumelate as much resources as possible. Their are high resources labeled green worth 200 and low rewards labeled blue worth 50. 
 - close: chases the closest resource regardless of value.
 - high: chases high resources first. Only goes for low resources as all the high resources have been depleted.
 - smart: Chases the reward with the highest value/distance ratio. 
+- genetic: Uses a simple genetic algorithm to find the best value using the reward value, distance to reward and the distance of other players to the reward. Optimiziation happens through random mutations.  
 
 The program sends the scores and location of each chaser through OSC data for the java app the process. 
 

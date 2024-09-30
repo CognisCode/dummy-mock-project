@@ -3,8 +3,6 @@ use nannou::prelude::*;
 use super::Simulation;
 use crate::{Progress, HIGHVALUE, LOWVALUE, HIGHREWARDS, LOWREWARDS};
 
-use super::genetics::*;
-
 pub fn create_player(id: i16, player_type: PlayerType, value: i32, pos_x: f32, pos_y: f32) -> Player {
 
     let player = Player::new(

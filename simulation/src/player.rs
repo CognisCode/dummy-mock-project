@@ -1,7 +1,7 @@
 use std::ops::Sub;
 use nannou::prelude::*;
 
-use crate::{Progress, Simulation, HIGHVALUE, LOWVALUE};
+use crate::{Progress, HIGHVALUE, LOWVALUE};
 use super::genetics::*;
 
 #[derive(Debug, PartialEq, Clone)]

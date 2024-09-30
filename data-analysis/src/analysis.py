@@ -20,7 +20,7 @@ query = """
     LIMIT 5000;
 """
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 12))  
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 8))  
 
 smart_line, = ax1.plot([], [], label='Smart Score', color='black', lw=2) 
 high_line, = ax1.plot([], [], label='High Score', color='red', lw=2)  
