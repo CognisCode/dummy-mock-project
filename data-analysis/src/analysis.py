@@ -70,8 +70,8 @@ high_distance = []
 close_distance = []
 genetic_distance = []
 
-ax1.set_ylim(0, 10000)
-ax2.set_ylim(0, 10000)
+ax1.set_ylim(0, 15000)
+ax2.set_ylim(0, 15000)
 
 def init():
     ax1.set_xlim(0, 5000) 
