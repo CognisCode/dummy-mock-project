@@ -1,4 +1,4 @@
-use std::collections::btree_map;
+use std::collections::BTreeMap;
 
 use nannou_osc as osc;
 use nannou::prelude::*;
@@ -9,6 +9,9 @@ use player::{Player, PlayerType};
 
 mod genetics;
 use genetics::*;
+
+mod helper;
+use helper::*;
 
 fn main() {
     nannou::app(simulation).update(next_step).exit(end).run();
@@ -21,28 +24,30 @@ const GENETICCHASER: usize = 1;
 const HIGHREWARDS: usize = 100; 
 const LOWREWARDS: usize = 100; 
 const MAXITERATIONS: usize = 30; 
-pub const HIGHVALUE: f32 = 200.0;
-pub const LOWVALUE: f32 = 50.0;
+pub const HIGHVALUE: i32 = 200;
+pub const LOWVALUE: i32 = 50;
 
 pub struct Simulation {
     all_players_vector: Vec<Player>, 
-    chaser_scores: Progress,
+    progress: Progress,
     scores_left: usize,
     iteration: usize,
     max_iterations: usize,
     sender: osc::Sender<osc::Connected>,
+    genetic_tree: BTreeMap<i32, Chromosome>,
 }
 
 #[derive(Debug)]
 pub struct Progress {
-    smart_score: f32,
-    high_score: f32,
-    close_score: f32,
-    genetic_score: f32, 
+    smart_score: i32,
+    high_score: i32,
+    close_score: i32,
+    genetic_score: i32, 
     smart_start: Vec2,
     high_start: Vec2,
     close_start: Vec2,
-    genetic_start: Vec2
+    genetic_start: Vec2,
+    chromosome: Chromosome,
 }
 
 
@@ -60,16 +65,16 @@ fn simulation(app: &App) -> Simulation {
     let max_iterations = MAXITERATIONS;
     let scores_left = HIGHREWARDS + LOWREWARDS;
 
-    let chaser_scores = Progress {
-        close_score: 0.0,
-        high_score: 0.0,
-        smart_score: 0.0,
-        genetic_score: 0.0,
+    let progress = Progress {
+        close_score: 0,
+        high_score: 0,
+        smart_score: 0,
+        genetic_score: 0,
         smart_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0), 
         high_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0), 
         close_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0),
-        genetic_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0)
-
+        genetic_start: vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0),
+        chromosome: Chromosome{w_dist: random_f32(),w_value: random_f32(),w_opponent: random_f32()},
     };
 
     let port = 9007;
@@ -84,14 +89,14 @@ fn simulation(app: &App) -> Simulation {
     create_rewards(1, HIGHREWARDS, PlayerType::HighReward, HIGHVALUE, &mut all_players_vector);
     create_rewards(100, LOWREWARDS, PlayerType::LowReward, LOWVALUE, &mut all_players_vector);
 
-    create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector, chaser_scores.close_start);
-    create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector, chaser_scores.smart_start);
-    create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, chaser_scores.high_start);
-    create_chasers(GENETICCHASER, PlayerType::Genetic, &mut all_players_vector, chaser_scores.high_start);
+    create_chasers(CLOSECHASER, PlayerType::ChaseClosest, &mut all_players_vector, progress.close_start);
+    create_chasers(SMARTCHASER, PlayerType::ChaseSmart, &mut all_players_vector, progress.smart_start);
+    create_chasers(HIGHCHASER, PlayerType::ChaseHighest, &mut all_players_vector, progress.high_start);
+    create_chasers(GENETICCHASER, PlayerType::Genetic, &mut all_players_vector, progress.genetic_start);
 
-    genetics::init_chromosones();
+    let genetic_tree = BTreeMap::new();
 
-    Simulation {all_players_vector, chaser_scores, scores_left, iteration, max_iterations, sender}
+    Simulation {all_players_vector, progress, scores_left, iteration, max_iterations, sender,genetic_tree}
 }
 
 fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
@@ -101,6 +106,7 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
         let highrewards: Vec<&Player> = simulation.all_players_vector[i].rewards(&simulation.all_players_vector, i, PlayerType::HighReward); 
         let lowrewards: Vec<&Player> = simulation.all_players_vector[i].rewards(&simulation.all_players_vector, i, PlayerType::LowReward); 
         let players: Vec<&Player> = simulation.all_players_vector[i].players(&simulation.all_players_vector, i); 
+        let other_players: Vec<&Player> = simulation.all_players_vector[i].other_players(&simulation.all_players_vector, i); 
 
         match simulation.all_players_vector[i].player_type {
             PlayerType::ChaseHighest => {
@@ -119,13 +125,13 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
                 simulation.all_players_vector[i].target_id = chase_result.target_id;
             }
             PlayerType::Genetic => {
-                let chase_result = simulation.all_players_vector[i].chase_genetic_rewards(&players, &highrewards, &lowrewards);
+                let chase_result = simulation.all_players_vector[i].chase_genetic_rewards(&other_players, &highrewards, &lowrewards, &simulation.progress.chromosome);
                 simulation.all_players_vector[i].direction += chase_result.direction;
                 simulation.all_players_vector[i].target_id = chase_result.target_id;
             }
             PlayerType::HighReward | PlayerType::LowReward => {
                 
-                if simulation.all_players_vector[i].get_consumed(&players, &mut simulation.chaser_scores) {
+                if simulation.all_players_vector[i].get_consumed(&players, &mut simulation.progress) {
                     simulation.all_players_vector[i].player_type = PlayerType::Consumed;
                     simulation.scores_left -= 1;
                 }
@@ -134,11 +140,12 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
             _ => {}
         }
 
-        simulation.all_players_vector[i].update(&mut simulation.chaser_scores); 
+        simulation.all_players_vector[i].update(&mut simulation.progress); 
 
         if simulation.scores_left == 0 {
-            revaluate(simulation); // insert into binary tree map
             reset_all(simulation);
+            revaluate(simulation); // insert into binary tree map
+
         }
 
         if simulation.iteration == simulation.max_iterations {
@@ -152,8 +159,6 @@ fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
     }
 }
 
-
-
 fn view(app: &App, simulation: &Simulation, frame: Frame) {
 
     let draw = app.draw();
@@ -166,104 +171,23 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
     let osc_addr = "/simulation/scores".to_string();
 
     let args = vec![
-        osc::Type::Float(simulation.chaser_scores.smart_score),
-        osc::Type::Float(simulation.chaser_scores.high_score),
-        osc::Type::Float(simulation.chaser_scores.close_score),
-        osc::Type::Float(simulation.chaser_scores.smart_start[0]),
-        osc::Type::Float(simulation.chaser_scores.smart_start[1]),
-        osc::Type::Float(simulation.chaser_scores.high_start[0]),
-        osc::Type::Float(simulation.chaser_scores.high_start[1]),
-        osc::Type::Float(simulation.chaser_scores.close_start[0]),
-        osc::Type::Float(simulation.chaser_scores.close_start[1]),
+        osc::Type::Int(simulation.progress.smart_score),
+        osc::Type::Int(simulation.progress.high_score),
+        osc::Type::Int(simulation.progress.close_score),
+        osc::Type::Int(simulation.progress.genetic_score),
+        osc::Type::Float(simulation.progress.smart_start[0]),
+        osc::Type::Float(simulation.progress.smart_start[1]),
+        osc::Type::Float(simulation.progress.high_start[0]),
+        osc::Type::Float(simulation.progress.high_start[1]),
+        osc::Type::Float(simulation.progress.close_start[0]),
+        osc::Type::Float(simulation.progress.close_start[1]),
+        osc::Type::Float(simulation.progress.genetic_start[0]),
+        osc::Type::Float(simulation.progress.genetic_start[1])
         ]; 
 
     let packet = (osc_addr, args);
     simulation.sender.send(packet).ok();
 
     draw.to_frame(app, &frame).unwrap();
-}
-
-fn create_player(id: i16, player_type: PlayerType, value: f32, pos_x: f32, pos_y: f32) -> Player {
-
-    let player = Player::new(
-        pos_x, 
-        pos_y,
-        15.0,
-        player_type,
-        id,
-        value
-    );    
-    player
-}
-
-fn create_rewards(id_start: i16, count: usize, player_type: PlayerType, value: f32, all_players: &mut Vec<Player>) {
-    
-    let mut id = id_start;
-    for _ in 0..count {
-        let player = create_player(id, player_type.clone(), value, (random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
-        id += 1;
-        all_players.push(player);
-    }
-}
-
-fn create_chasers(count: usize, player_type: PlayerType, all_players: &mut Vec<Player>, start: Vec2) {
-
-    for _ in 0..count {
-        let player = create_player(0, player_type.clone(), 0.0, start[0], start[1]) ;
-        all_players.push(player);
-    }
-}
-
-fn reset_all(simulation: &mut Simulation) {
-    
-    let mut high_reward_count = 0; 
-    simulation.iteration += 1;
-    simulation.scores_left =  HIGHREWARDS + LOWREWARDS;
-    
-    simulation.chaser_scores = Progress {
-        smart_score: 0.0,
-        high_score: 0.0,
-        close_score: 0.0,
-        genetic_score: 0.0,
-        smart_start: vec2(0.0, 0.0),
-        high_start: vec2(0.0, 0.0),
-        close_start: vec2(0.0, 0.0),
-        genetic_start: vec2(0.0, 0.0),
-    };
-
-    for i in 0..simulation.all_players_vector.len() {
-        
-        if simulation.all_players_vector[i].player_type == PlayerType::Consumed {
-            
-            if high_reward_count < HIGHREWARDS {
-                simulation.all_players_vector[i].player_type = PlayerType::HighReward;
-                simulation.all_players_vector[i].position = vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
-                simulation.all_players_vector[i].value = HIGHVALUE;
-                high_reward_count += 1;
-            } else {
-                simulation.all_players_vector[i].player_type = PlayerType::LowReward;
-                simulation.all_players_vector[i].position = vec2((random_f32() - 0.5) * 2400.0, (random_f32() - 0.5) * 1200.0);
-                simulation.all_players_vector[i].value = LOWVALUE;
-            }
-        } else {
-            let start_x: f32 = (random_f32() - 0.5) * 2400.0;
-            let start_y: f32 = (random_f32() - 0.5) * 1200.0;
-
-            simulation.all_players_vector[i].target_id = 0;
-            simulation.all_players_vector[i].position = vec2(start_x, start_y);
-
-            match simulation.all_players_vector[i].player_type {
-                PlayerType::ChaseClosest => simulation.chaser_scores.close_start = vec2(start_x, start_y),
-                PlayerType::ChaseHighest => simulation.chaser_scores.high_start = vec2(start_x, start_y),
-                PlayerType::ChaseSmart => simulation.chaser_scores.smart_start = vec2(start_x, start_y),
-                _ => {},
-            }
-
-        }
-    }
-}
-
-fn end(_app: &App, _model: Simulation) {
-    println!("Exiting application...");
 }
 

@@ -2,31 +2,48 @@ use super::player::{Player, PlayerType};
 use nannou::prelude::*;
 use super::Simulation;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Chromosome {
-    w_dist: f32,  
-    w_value: f32, 
-    w_opponent: f32, 
+    pub w_dist: f32,  
+    pub w_value: f32, 
+    pub w_opponent: f32, 
 }
 
 
-pub fn init_chromosones() -> Vec<Chromosome>{
+// pub fn init_chromosones() -> Vec<Chromosome>{
 
-    let mut chromosones: Vec<Chromosome> = Vec::new();
+//     let mut chromosones: Vec<Chromosome> = Vec::new();
 
-    for _ in 0..5 {
-        chromosones.push(
-            Chromosome {
-                w_dist: random_f32(),
-                w_value: random_f32(),
-                w_opponent: random_f32()
-        });
-    };
-    chromosones
-}
+//     for _ in 0..5 {
+//         chromosones.push(
+//             Chromosome {
+//                 w_dist: random_f32(),
+//                 w_value: random_f32(),
+//                 w_opponent: random_f32()
+//         });
+//     };
+//     chromosones
+// }
 
 pub fn revaluate(simulation: &mut Simulation) {
+    
+    simulation.genetic_tree.entry(simulation.progress.genetic_score).or_insert( simulation.progress.chromosome);
 
+
+    if simulation.iteration > 5  {
+
+        if let Some((_, largest_value)) =  simulation.genetic_tree.iter().rev().next() {
+
+            simulation.progress.chromosome = Chromosome{
+                w_dist: largest_value.w_dist + (random_f32() - 0.5) / 10.0 ,
+                w_value: largest_value.w_value + (random_f32() - 0.5) / 10.0 ,
+                w_opponent: largest_value.w_opponent + (random_f32() - 0.5) / 10.0 
+            };
+
+        }
+    } else {
+        simulation.progress.chromosome = Chromosome{w_dist: random_f32(),w_value: random_f32(),w_opponent: random_f32()};
+    }
 }
-
 
 
