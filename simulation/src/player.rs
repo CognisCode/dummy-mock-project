@@ -1,12 +1,15 @@
 use std::ops::Sub;
 use nannou::prelude::*;
+
 use crate::{Progress, HIGHVALUE, LOWVALUE};
+use super::genetics::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum PlayerType {
     ChaseClosest,
     ChaseHighest,
     ChaseSmart,
+    Genetic,
     Consumed,
     HighReward,
     LowReward
@@ -21,7 +24,7 @@ pub struct Player {
     size: f32, 
     max_step_size: f32,
     pub id: i16,
-    pub value: f32,
+    pub value: i32,
     pub target_id: i16
 }
 
@@ -31,12 +34,13 @@ pub struct TargetGoal {
 }
 
 impl Player {
-    pub fn new(pos_x: f32, pos_y: f32, size: f32, player_type: PlayerType, id: i16, value: f32) -> Player {
+    pub fn new(pos_x: f32, pos_y: f32, size: f32, player_type: PlayerType, id: i16, value: i32) -> Player {
         
         let max_step_size = match player_type {
             PlayerType::ChaseHighest => {3.0},
             PlayerType::ChaseClosest => {3.0},
             PlayerType::ChaseSmart => {3.0},
+            PlayerType::Genetic => {3.0},
             PlayerType::Consumed => {0.0},
             PlayerType::HighReward => {0.0},
             PlayerType::LowReward => {0.0},
@@ -69,6 +73,11 @@ impl Player {
             },
             PlayerType::ChaseClosest => {
                 red = 139.0;
+                green = 0.0;
+                blue = 139.0;
+            },
+            PlayerType::Genetic=> {
+                red = 0.0;
                 green = 0.0;
                 blue = 139.0;
             },
@@ -123,6 +132,7 @@ impl Player {
                 PlayerType::ChaseClosest => {chaser_scores.close_start = self.position},
                 PlayerType::ChaseHighest => {chaser_scores.high_start = self.position},
                 PlayerType::ChaseSmart => {chaser_scores.smart_start = self.position},
+                PlayerType::Genetic=> {chaser_scores.genetic_start = self.position},
                 _  => {}
             }        
         }
@@ -168,6 +178,19 @@ impl Player {
         players
     }
 
+    pub fn other_players<'a>(&self, all_players: &'a Vec<Player>, player_index: usize) -> Vec<&'a Player> {
+        
+        let mut players = Vec::new();
+
+        for i in 0..all_players.len() {
+
+            if i != player_index && all_players[i].player_type != PlayerType::Genetic && all_players[i].player_type != PlayerType::HighReward && all_players[i].player_type != PlayerType::Consumed && all_players[i].player_type != PlayerType::LowReward {
+                players.push(&all_players[i]);
+            }
+        }
+        players
+    }
+
     pub fn get_consumed(&self, chasers: &Vec<&Player>, chaser_scores: &mut Progress) -> bool {
 
         let len = chasers.len();
@@ -180,7 +203,7 @@ impl Player {
 
             if self.position.distance(chaser.position) < 5.0 && self.id == chaser.target_id {
                 
-                let mut reward: f32 = 0.0;
+                let mut reward: i32 = 0;
 
                 match self.player_type {
                     PlayerType::HighReward => {reward = HIGHVALUE},
@@ -191,6 +214,7 @@ impl Player {
                     PlayerType::ChaseSmart => {chaser_scores.smart_score += reward;},
                     PlayerType::ChaseHighest => {chaser_scores.high_score += reward;},
                     PlayerType::ChaseClosest => {chaser_scores.close_score += reward;},
+                    PlayerType::Genetic => {chaser_scores.genetic_score += reward;}
                     _ => {}
                 } 
                 return true;
@@ -208,25 +232,21 @@ impl Player {
         // find nearest reward
         let mut shortest_distance = 100000000.0;
         let mut direction = Vec2::new(0.0, 0.0);
-
         let mut target_id = 0;
+
         // find closest target
-        for reward in highrewards {
-            if reward.position.distance(self.position) < shortest_distance {    
+        let rewards: Vec<&Player> = [highrewards.as_slice(), lowrewards.as_slice()].concat();
+
+        for reward in rewards {
+
+            let distance = reward.position.distance(self.position);
+
+            if distance < shortest_distance {    
                 direction = reward.position.sub(self.position).normalize();
-                shortest_distance = reward.position.distance(self.position);
+                shortest_distance = distance;
                 target_id = reward.id; 
             }   
         }
-
-        for reward in lowrewards {
-            if reward.position.distance(self.position) < shortest_distance {    
-                direction = reward.position.sub(self.position).normalize();
-                shortest_distance = reward.position.distance(self.position);
-                target_id = reward.id; 
-            }   
-        }
-
         return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}         
     }
 
@@ -248,9 +268,11 @@ impl Player {
 
         for reward in rewards {
 
-            if reward.position.distance(self.position) < shortest_distance {    
+            let distance = reward.position.distance(self.position);
+
+            if distance < shortest_distance {    
                 direction = reward.position.sub(self.position).normalize();
-                shortest_distance = reward.position.distance(self.position);
+                shortest_distance = distance;
                 target_id = reward.id; 
             }   
         }
@@ -261,30 +283,66 @@ pub fn chase_smart_rewards(&self, highrewards: &Vec<&Player>, lowrewards: &Vec<&
 
     if highrewards.len() + lowrewards.len() == 0 { 
         return TargetGoal{direction: vec2(0.0, 0.0), target_id: 0} 
-     }
+    }
              
-     let mut most_valuable = 0.0;
-     let mut direction = Vec2::new(0.0, 0.0);
-     let mut target_id = 0;
-     
-     for reward in highrewards {
+    let mut most_valuable = 0.0;
+    let mut direction = Vec2::new(0.0, 0.0);
+    let mut target_id = 0;
+    
+    let rewards: Vec<&Player> = [highrewards.as_slice(), lowrewards.as_slice()].concat();
 
-         if HIGHVALUE / reward.position.distance(self.position) > most_valuable {    
+    for reward in rewards {
+
+        let distance = reward.position.distance(self.position);
+
+        if HIGHVALUE as f32 / distance > most_valuable {    
              direction = reward.position.sub(self.position).normalize();
-             most_valuable = HIGHVALUE / reward.position.distance(self.position);
+             most_valuable = HIGHVALUE as f32 / distance;
              target_id = reward.id; 
-         }
-     }
-
-     for reward in lowrewards {
-        if LOWVALUE / reward.position.distance(self.position) > most_valuable {    
+        }
+     
+        if LOWVALUE as f32 / distance > most_valuable {    
             direction = reward.position.sub(self.position).normalize();
-            most_valuable =  LOWVALUE / reward.position.distance(self.position);
+            most_valuable =  LOWVALUE as f32 / distance;
             target_id = reward.id; 
         }   
-     }
+    }      
+    return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}               
+    }
+    
+pub fn chase_genetic_rewards<'a>(&self, players: &'a Vec<&Player>,  highrewards: &'a Vec<&Player>, lowrewards: &'a Vec<&Player>, chromosome: &Chromosome) -> TargetGoal {
+    
+    if highrewards.len() + lowrewards.len() == 0 { 
+        return TargetGoal{direction: vec2(0.0, 0.0), target_id: 0} 
+        }
+                
+        let mut most_valuable = 0.0;
+        let mut direction = Vec2::new(0.0, 0.0);
+        let mut target_id = 0;
 
-     return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}               
+        let rewards: Vec<&Player> = [highrewards.as_slice(), lowrewards.as_slice()].concat();
+
+    for reward in rewards {
+        
+        let mut chaser_to_reward_dist: f32 = 0.0;
+
+        for player in players{    
+            if player.player_type != PlayerType::Genetic {
+                chaser_to_reward_dist += player.position.distance(reward.position);
+
+            }        
+        };
+
+        let current_value = (chromosome.w_value * reward.value as f32 * chromosome.w_opponent * chaser_to_reward_dist) / (chromosome.w_dist * reward.position.distance(self.position)) ;
+        
+        if current_value > most_valuable {    
+            direction = reward.position.sub(self.position).normalize();
+            most_valuable = current_value;
+            target_id = reward.id; 
+        };
+    }
+
+    return TargetGoal{direction: Vec2::new(direction.x , direction.y ), target_id}               
     }
 
 }

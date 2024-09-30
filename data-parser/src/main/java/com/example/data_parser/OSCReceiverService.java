@@ -51,27 +51,34 @@ public class OSCReceiverService {
 //
 //        System.out.println("Received OSC Message: " + message.getAddress());
 
-        Float smart_score = (Float) message.getArguments().get(0);
-        Float high_score = (Float) message.getArguments().get(1);
-        Float close_score = (Float) message.getArguments().get(2);
-        Float smart_start_x =  (Float) message.getArguments().get(3);
-        Float smart_start_y =  (Float) message.getArguments().get(4);
-        Float high_start_x =  (Float) message.getArguments().get(5);
-        Float high_start_y =  (Float) message.getArguments().get(6);
-        Float close_start_x =  (Float) message.getArguments().get(7);
-        Float close_start_y =  (Float) message.getArguments().get(8);
+        int smart_score = (int) message.getArguments().get(0);
+        int high_score = (int) message.getArguments().get(1);
+        int close_score = (int) message.getArguments().get(2);
+        int genetic_score = (int) message.getArguments().get(3);
+        Float smart_start_x =  (Float) message.getArguments().get(4);
+        Float smart_start_y =  (Float) message.getArguments().get(5);
+        Float high_start_x =  (Float) message.getArguments().get(6);
+        Float high_start_y =  (Float) message.getArguments().get(7);
+        Float close_start_x =  (Float) message.getArguments().get(8);
+        Float close_start_y =  (Float) message.getArguments().get(9);
+        Float genetic_start_x =  (Float) message.getArguments().get(10);
+        Float genetic_start_y =  (Float) message.getArguments().get(11);
 
         SimulationData simulationData = new SimulationData();
 
         simulationData.setSmartScore(smart_score);
         simulationData.setHighScore(high_score);
         simulationData.setCloseScore(close_score);
+        simulationData.setGeneticScore(genetic_score);
         simulationData.setSmartStartX(smart_start_x);
         simulationData.setSmartStartY(smart_start_y);
         simulationData.setHighStartX(high_start_x);
         simulationData.setHighStartY(high_start_y);
         simulationData.setCloseStartX(close_start_x);
         simulationData.setCloseStartY(close_start_y);
+        simulationData.setGeneticStartX(genetic_start_x);
+        simulationData.setGeneticStartY(genetic_start_y);
+
         simulationData.setTimestamp(Instant.now());
 
         simulationDataRepository.save(simulationData);
