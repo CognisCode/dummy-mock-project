@@ -40,3 +40,8 @@
 
 
 
+
+
+let smart_score: i32 = 0;
+let smart_x: f32 = 0.0;
+let smart_y: f32 = 0.0;

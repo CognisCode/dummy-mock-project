@@ -100,7 +100,7 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
         chaser.show(&draw); 
 
         match chaser.chaser_type{
-            ChaserType::Expected =>{},
+            ChaserType::Closest =>{},
             _ => () 
         }
     }
