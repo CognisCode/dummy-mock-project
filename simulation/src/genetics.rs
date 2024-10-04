@@ -1,5 +1,5 @@
 use nannou::prelude::*;
-use super::Simulation;
+use crate::simulation::Simulation;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Chromosome {
