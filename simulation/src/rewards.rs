@@ -40,7 +40,7 @@ impl Reward {
     
     }
 
-    pub fn assign_score(&mut self, chasers: &Vec<Chaser>) -> bool {
+    pub fn assign_score(&mut self, chasers: &mut Vec<Chaser>) -> bool {
 
         if chasers.len() == 0 {
             return false;
@@ -52,6 +52,7 @@ impl Reward {
 
             if self.position.distance(chaser.position) < 5.0 && self.id == chaser.target_id {
                 chaser.score += self.value;
+                chaser.target_id = 0;
                 consumed = true;
             }
         }

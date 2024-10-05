@@ -32,7 +32,7 @@ impl Chaser {
                 angle_vec: vec2(0.0, 0.0),
                 size: SIZE,
                 direction: vec2(0.0, 0.0),
-                max_step_size: 30.0,
+                max_step_size: 3.0,
                 chaser_type,
                 target_id: 0,
                 score: 0,
@@ -49,7 +49,7 @@ impl Chaser {
     }
 
     pub fn update(&mut self){
-        self.position += self.direction.normalize(); 
+        self.position += self.direction.normalize() * SPEED; 
 
         // angle vector is previous direction + new direction and then normalized to keep te step size equal to max step size
         self.angle_vec += self.direction;

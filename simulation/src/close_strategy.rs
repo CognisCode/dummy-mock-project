@@ -16,12 +16,14 @@ pub fn chase_closest(chaser: &mut Chaser, rewards: &Vec<Reward>){
     // find closest target
     for reward in rewards {
 
-        let distance = reward.position.distance(chaser.position);
+        if reward.reward_type != RewardType::Consumed {
+            let distance = reward.position.distance(chaser.position);
 
-        if reward.position.distance(chaser.position) < shortest_distance {    
-            chaser.direction = reward.position.sub(chaser.position).normalize();
-            shortest_distance = distance;
-            chaser.target_id = reward.id; 
-        }   
+            if reward.position.distance(chaser.position) < shortest_distance {    
+                chaser.direction = reward.position.sub(chaser.position).normalize();
+                shortest_distance = distance;
+                chaser.target_id = reward.id; 
+            }   
+    }
     }
 }
