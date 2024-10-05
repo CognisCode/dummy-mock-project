@@ -85,6 +85,32 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
 
     send_data(&simulation.chasers, &simulation);
 
+    let close_score = format!("close score: {:.2}", simulation.chasers[0].score);
+    let value_score = format!("value score: {:.2}", simulation.chasers[1].score);
+    let high_score = format!("high score: {:.2}", simulation.chasers[2].score);
+    // let custom_score = format!("custom score: {:.2}", simulation.chasers[3].score);
+
+
+    draw.text(&close_score)
+        .x_y(-1100.0, 550.0)
+        .color(MAGENTA)
+        .font_size(24);
+
+    draw.text(&value_score)
+        .x_y(-1100.0, 500.0)
+        .color(BLACK)
+        .font_size(24);
+
+    draw.text(&high_score)
+        .x_y(-1100.0, 450.0)
+        .color(RED)
+        .font_size(24);
+
+    // draw.text(&custom_score)
+    //     .x_y(-1100.0, 400.0)
+    //     .color(BLUE)
+    //     .font_size(24);
+
     draw.to_frame(app, &frame).unwrap();
 }
 
