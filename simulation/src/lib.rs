@@ -8,6 +8,7 @@ pub mod chasers;
 pub mod value_strategy;
 pub mod close_strategy;
 pub mod high_strategy;
+pub mod custom_strategy;
 
 pub const VALUECHASER: usize = 1;
 pub const CLOSECHASER: usize = 1; 

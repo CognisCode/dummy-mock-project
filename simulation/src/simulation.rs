@@ -39,15 +39,19 @@ pub fn app(app: &App) -> Simulation {
     create_chaser(CLOSECHASER, ChaserType::Closest, &mut chasers, Color{red: 139.0, green: 0.0, blue: 139.0});
     create_chaser(VALUECHASER, ChaserType::Value, &mut chasers,  Color{red: 0.0, green: 0.0, blue: 0.0});
     create_chaser(HIGHCHASER, ChaserType::Highest, &mut chasers,  Color{red: 255.0, green: 0.0, blue: 0.0});
-    // create_chaser(CUSTOMCHASER, ChaserType::Custom, &mut chasers, Color{red: 0.0, green: 0.0, blue: 139.0});
+    create_chaser(CUSTOMCHASER, ChaserType::Custom, &mut chasers, Color{red: 0.0, green: 0.0, blue: 139.0});
 
     Simulation {rewards_left, iteration, max_iterations, sender, chasers, rewards}
 }
 
 pub fn next_step(app: &App, simulation: &mut Simulation, _update: Update) {
 
-    for chaser in &mut simulation.chasers {
-        chaser.strategy(&simulation.rewards);
+    for i in 0..simulation.chasers.len() {
+
+        let (before, rest) = simulation.chasers.split_at_mut(i);
+        let (chaser, after) = rest.split_first_mut().unwrap();
+        let other_chasers: Vec<Chaser> = before.iter().chain(after.iter()).cloned().collect();
+        chaser.strategy(&simulation.rewards, &other_chasers);
     }
 
     for reward in  &mut simulation.rewards {
@@ -88,7 +92,7 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
     let close_score = format!("close score: {:.2}", simulation.chasers[0].score);
     let value_score = format!("value score: {:.2}", simulation.chasers[1].score);
     let high_score = format!("high score: {:.2}", simulation.chasers[2].score);
-    // let custom_score = format!("custom score: {:.2}", simulation.chasers[3].score);
+    let custom_score = format!("custom score: {:.2}", simulation.chasers[3].score);
 
 
     draw.text(&close_score)
@@ -106,10 +110,10 @@ fn view(app: &App, simulation: &Simulation, frame: Frame) {
         .color(RED)
         .font_size(24);
 
-    // draw.text(&custom_score)
-    //     .x_y(-1100.0, 400.0)
-    //     .color(BLUE)
-    //     .font_size(24);
+    draw.text(&custom_score)
+        .x_y(-1100.0, 400.0)
+        .color(BLUE)
+        .font_size(24);
 
     draw.to_frame(app, &frame).unwrap();
 }

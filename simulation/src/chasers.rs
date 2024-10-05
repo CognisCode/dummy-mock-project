@@ -4,6 +4,7 @@ use crate::rewards::Reward;
 use crate::close_strategy::chase_closest;
 use crate::high_strategy::chase_highest;
 use crate::value_strategy::chase_value;
+use crate::custom_strategy::chase_custom;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ChaserType {
@@ -59,14 +60,13 @@ impl Chaser {
         self.direction = vec2(0.0, 0.0);
     }
 
-    pub fn strategy(&mut self, rewards: &Vec<Reward>) {
+    pub fn strategy(&mut self, rewards: &Vec<Reward>, chasers: &Vec<Chaser>) {
 
         match self.chaser_type { 
             ChaserType::Closest => chase_closest(self, rewards),
             ChaserType::Value => chase_value(self, rewards),
             ChaserType::Highest  => chase_highest(self, rewards),
-            _ => ()
-            // ChaserType::Custom  => chase_custom(),
+            ChaserType::Custom  => chase_custom(self, rewards, chasers)
         }
     }
 
