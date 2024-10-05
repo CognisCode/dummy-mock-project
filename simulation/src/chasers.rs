@@ -2,13 +2,15 @@ use nannou::prelude::*;
 use crate::*;
 use crate::rewards::Reward;
 use crate::close_strategy::chase_closest;
+use crate::high_strategy::chase_highest;
+use crate::value_strategy::chase_value;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ChaserType {
     Closest,
     Highest,
-    Expected,
-    Genetic,
+    Value,
+    Custom,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +46,7 @@ impl Chaser {
         draw.tri()
             .w_h(self.size, self.size)
             .x_y(self.position.x, self.position.y)
-            .rotate(self.angle_vec.angle()) // angle of the triangle
+            .rotate(self.angle_vec.angle()) 
             .rgba(self.color.red, self.color.green, self.color.blue, 0.85);
     }
 
@@ -54,17 +56,17 @@ impl Chaser {
         // angle vector is previous direction + new direction and then normalized to keep te step size equal to max step size
         self.angle_vec += self.direction;
         self.angle_vec = self.angle_vec.clamp_length(self.max_step_size,self.max_step_size);
-        self.direction = vec2(0.0, 0.0); // reset accelartion
+        self.direction = vec2(0.0, 0.0);
     }
 
     pub fn strategy(&mut self, rewards: &Vec<Reward>) {
 
         match self.chaser_type { 
             ChaserType::Closest => chase_closest(self, rewards),
+            ChaserType::Value => chase_value(self, rewards),
+            ChaserType::Highest  => chase_highest(self, rewards),
             _ => ()
-            // ChaserType::Expected => chase_closest(),
-            // ChaserType::Highest  => chase_closest(),
-            // ChaserType::Genetic  => chase_closest(),
+            // ChaserType::Custom  => chase_custom(),
         }
     }
 

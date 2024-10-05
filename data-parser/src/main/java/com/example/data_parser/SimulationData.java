@@ -13,18 +13,18 @@ public class SimulationData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int smart_score;
+    private int value_score;
     private int high_score;
     private int close_score;
-    private int genetic_score;
-    private Float smart_start_x;
-    private Float smart_start_y;
-    private Float high_start_x;
-    private Float high_start_y;
-    private Float close_start_x;
-    private Float close_start_y;
-    private Float genetic_start_x;
-    private Float genetic_start_y;
+    private int custom_score;
+    private Float value_x;
+    private Float value_y;
+    private Float high_x;
+    private Float high_y;
+    private Float close_x;
+    private Float close_y;
+    private Float custom_x;
+    private Float custom_y;
     private Instant timestamp;
 
     public Long getId() {
@@ -35,12 +35,12 @@ public class SimulationData {
         this.id = id;
     }
 
-    public int getSmartScore() {
-        return smart_score;
+    public int getValueScore() {
+        return value_score;
     }
 
-    public void setSmartScore(int smart_score) {
-        this.smart_score = smart_score;
+    public void setValueScore(int value_score) {
+        this.value_score = value_score;
     }
 
     public int getHighScore() {
@@ -59,12 +59,12 @@ public class SimulationData {
         this.close_score = close_score;
     }
 
-    public int getGeneticScore() {
-        return genetic_score;
+    public int getCustomScore() {
+        return custom_score;
     }
 
-    public void setGeneticScore(int genetic_score) {
-        this.genetic_score = genetic_score;
+    public void setCustomScore(int custom_score) {
+        this.custom_score = custom_score;
     }
 
     public Instant getTimestamp() {
@@ -75,67 +75,67 @@ public class SimulationData {
         this.timestamp = timestamp;
     }
 
-    public Float getSmartStartX() {
-        return smart_start_x;
+    public Float getValueX() {
+        return value_x;
     }
 
-    public void setSmartStartX(Float smart_start_x) {
-        this.smart_start_x = smart_start_x;
+    public void setValueX(Float value_x) {
+        this.value_x = value_x;
     }
 
-    public Float getSmartStartY() {
-        return smart_start_y;
+    public Float getValueY() {
+        return value_y;
     }
 
-    public void setSmartStartY(Float smart_start_y) {
-        this.smart_start_y = smart_start_y;
+    public void setValueY(Float value_y) {
+        this.value_y = value_y;
     }
 
-    public Float getHighStartX() {
-        return high_start_x;
+    public Float getHighX() {
+        return high_x;
     }
 
-    public void setHighStartX(Float high_start_x) {
-        this.high_start_x = high_start_x;
+    public void setHighX(Float high_x) {
+        this.high_x = high_x;
     }
 
-    public Float getHighStartY() {
-        return high_start_y;
+    public Float getHighY() {
+        return high_y;
     }
 
-    public void setHighStartY(Float high_start_y) {
-        this.high_start_y = high_start_y;
+    public void setHighY(Float high_y) {
+        this.high_y = high_y;
     }
 
-    public Float getCloseStartX() {
-        return close_start_x;
+    public Float getCloseX() {
+        return close_x;
     }
 
-    public void setCloseStartX(Float close_start_x) {
-        this.close_start_x = close_start_x;
+    public void setCloseX(Float close_x) {
+        this.close_x = close_x;
     }
 
-    public Float getCloseStartY() {
-        return close_start_y;
+    public Float getCloseY() {
+        return close_y;
     }
 
-    public void setCloseStartY(Float close_start_y) {
-        this.close_start_y = close_start_y;
+    public void setCloseY(Float close_y) {
+        this.close_y = close_y;
     }
 
-    public Float getGeneticStartX() {
-        return genetic_start_x;
+    public Float getCustomX() {
+        return custom_x;
     }
 
-    public void setGeneticStartX(Float genetic_start_x) {
-        this.genetic_start_x = genetic_start_x;
+    public void setCustomX(Float custom_x) {
+        this.custom_x = custom_x;
     }
 
-    public Float getGeneticStartY() {
-        return genetic_start_y;
+    public Float getCustomY() {
+        return custom_y;
     }
 
-    public void setGeneticStartY(Float genetic_start_y) {
-        this.genetic_start_y = genetic_start_y;
+    public void setCustomY(Float custom_y) {
+        this.custom_y = custom_y;
     }
 }

@@ -51,33 +51,33 @@ public class OSCReceiverService {
 //
 //        System.out.println("Received OSC Message: " + message.getAddress());
 
-        int smart_score = (int) message.getArguments().get(0);
+        int value_score = (int) message.getArguments().get(0);
         int high_score = (int) message.getArguments().get(1);
         int close_score = (int) message.getArguments().get(2);
-        int genetic_score = (int) message.getArguments().get(3);
-        Float smart_start_x =  (Float) message.getArguments().get(4);
-        Float smart_start_y =  (Float) message.getArguments().get(5);
-        Float high_start_x =  (Float) message.getArguments().get(6);
-        Float high_start_y =  (Float) message.getArguments().get(7);
-        Float close_start_x =  (Float) message.getArguments().get(8);
-        Float close_start_y =  (Float) message.getArguments().get(9);
-        Float genetic_start_x =  (Float) message.getArguments().get(10);
-        Float genetic_start_y =  (Float) message.getArguments().get(11);
+        int custom_score = (int) message.getArguments().get(3);
+        Float value_x =  (Float) message.getArguments().get(4);
+        Float value_y =  (Float) message.getArguments().get(5);
+        Float high_x =  (Float) message.getArguments().get(6);
+        Float high_y =  (Float) message.getArguments().get(7);
+        Float close_x =  (Float) message.getArguments().get(8);
+        Float close_y =  (Float) message.getArguments().get(9);
+        Float custom_x =  (Float) message.getArguments().get(10);
+        Float custom_y =  (Float) message.getArguments().get(11);
 
         SimulationData simulationData = new SimulationData();
 
-        simulationData.setSmartScore(smart_score);
+        simulationData.setValueScore(value_score);
         simulationData.setHighScore(high_score);
         simulationData.setCloseScore(close_score);
-        simulationData.setGeneticScore(genetic_score);
-        simulationData.setSmartStartX(smart_start_x);
-        simulationData.setSmartStartY(smart_start_y);
-        simulationData.setHighStartX(high_start_x);
-        simulationData.setHighStartY(high_start_y);
-        simulationData.setCloseStartX(close_start_x);
-        simulationData.setCloseStartY(close_start_y);
-        simulationData.setGeneticStartX(genetic_start_x);
-        simulationData.setGeneticStartY(genetic_start_y);
+        simulationData.setCustomScore(custom_score);
+        simulationData.setValueX(value_x);
+        simulationData.setValueY(value_y);
+        simulationData.setHighX(high_x);
+        simulationData.setHighY(high_y);
+        simulationData.setCloseX(close_x);
+        simulationData.setCloseY(close_y);
+        simulationData.setCustomX(custom_x);
+        simulationData.setCustomY(custom_y);
 
         simulationData.setTimestamp(Instant.now());
 

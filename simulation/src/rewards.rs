@@ -21,7 +21,6 @@ pub enum RewardType {
 impl Reward {
 
     pub fn new(reward_type: RewardType, id: i16, value: i32, color: Color) -> Reward {
-        
         Reward {
                 position: vec2((random_f32() - 0.5) * WIDTH, (random_f32() - 0.5) * HEIGHT),
                 size: SIZE,
@@ -37,7 +36,6 @@ impl Reward {
             .w_h(self.size, self.size)
             .x_y(self.position.x, self.position.y)
             .rgba(self.color.red, self.color.green, self.color.blue, 0.85);
-    
     }
 
     pub fn assign_score(&mut self, chasers: &mut Vec<Chaser>) -> bool {
@@ -60,10 +58,9 @@ impl Reward {
         if consumed {
             self.reward_type = RewardType::Consumed;
             self.color = Color{red: 255.0, green: 255.0, blue: 0.0};
+            self.value = 0;
             return true
         }
         return false;
     }
-
-
 }

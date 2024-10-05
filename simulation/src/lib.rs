@@ -1,16 +1,18 @@
 use chasers::{Chaser, ChaserType};
 use rewards::{Reward, RewardType};
 
-pub mod player;
 pub mod simulation;
 pub mod rewards;
 pub mod chasers;
-pub mod close_strategy;
 
-pub const SMARTCHASER: usize = 1;
+pub mod value_strategy;
+pub mod close_strategy;
+pub mod high_strategy;
+
+pub const VALUECHASER: usize = 1;
 pub const CLOSECHASER: usize = 1; 
 pub const HIGHCHASER: usize = 1; 
-pub const GENETICCHASER: usize = 1; 
+pub const CUSTOMCHASER: usize = 1; 
 pub const HIGHREWARDS: usize = 100; 
 pub const LOWREWARDS: usize = 100; 
 pub const MAXITERATIONS: usize = 30; 

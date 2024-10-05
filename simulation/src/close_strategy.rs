@@ -5,15 +5,14 @@ use std::ops::Sub;
 
 
 pub fn chase_closest(chaser: &mut Chaser, rewards: &Vec<Reward>){
+    // chase closest target
 
     if rewards.len() == 0 { 
        return; 
     }
 
-    // find nearest reward
     let mut shortest_distance = 100000000.0;
 
-    // find closest target
     for reward in rewards {
 
         if reward.reward_type != RewardType::Consumed {
@@ -24,6 +23,6 @@ pub fn chase_closest(chaser: &mut Chaser, rewards: &Vec<Reward>){
                 shortest_distance = distance;
                 chaser.target_id = reward.id; 
             }   
-    }
+        }
     }
 }
